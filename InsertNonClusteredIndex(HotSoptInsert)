@@ -1,0 +1,39 @@
+use SQLStrees
+go
+
+if (select object_id('NonClusterIndex_LOG')) is not null
+begin
+	drop table NonClusterIndex_LOG
+end
+create table NonClusterIndex_LOG (id bigint identity(1,1),data_inicio datetime,hostname sysname,texto varchar(800),inteiro int,data_fim datetime)
+
+declare  @string		nvarchar(max)
+		,@start_offset	int
+		,@end_offset	int
+		,@offset		int
+		,@lenString		int
+		,@replicate		int
+
+set @string = 'ABCDEFGHIJLMNPQRSTUVXZWYK1234567890!@#$%¨&*()     ,.;<>:~]^}´[`{-----_____=====+++++§§§ªº\\\\\\\\\|||||||||""""""""'
+set @end_offset = (select(convert(int,FLOOR(RAND()*(115-1)+1))))
+set @start_offset  = (select (convert(int,FLOOR(RAND()*(@end_offset-1)+1))))
+set @offset = @end_offset - @start_offset
+set @lenString = 800
+set @replicate = @lenString/@offset
+
+/*
+select	 @start_offset		[start]
+		,@end_offset		[end]
+		,@offset			[offset]
+		,@replicate			[replicate]	
+*/
+
+insert into NonClusterIndex_LOG
+select	 getdate()
+		,convert(varchar(50),serverproperty('servername'))
+		,replicate(SUBSTRING(@string,@start_offset,@offset),@replicate)
+		,len(replicate(SUBSTRING(@string,@start_offset,@offset),@replicate))
+		,dateadd(minute,convert(int,FLOOR(RAND()*(115-1)+1)),getdate())
+
+
+		select * from NonClusterIndex_LOG
