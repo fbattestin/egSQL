@@ -1,6 +1,6 @@
 USE [msdb]
 GO
---!!!!!! JOB DEFAULT DISABLED !!!!!!
+--!!!!!!  DEFAULT DISABLED !!!!!!
 
 /****** Object:  Job [WAITS]    Script Date: 6/11/2017 12:11:11 AM ******/
 BEGIN TRANSACTION
