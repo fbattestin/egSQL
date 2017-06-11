@@ -13,10 +13,10 @@ declare	 @secondsLoop int
 set @alwaysRun = 0
 
 --setup the seconds to define interval for collecting loops 
-set @secondsLoop = 2
+set @secondsLoop = 30
 
 --how many seconds collecting until stop.
-set @dead = 10
+set @dead = 600
 set @dtStop = dateadd(second,@dead,getdate())
 set @loopDelay = '1900-01-01 00:00:00'
 set @loopDelay = dateadd(second,@secondsLoop,@loopDelay)
@@ -53,10 +53,12 @@ end
 		--begin loop
 		while @dtstop > getdate()
 		begin
-				waitfor delay @auxLoopDelay
+				
 
 				insert into master..LogSpace (DatabaseName,LogSize_MB,LogSpaceUsed_Pct,Status_)
 				exec ('dbcc sqlperf(logspace)')
+
+				waitfor delay @auxLoopDelay
 		end
 
 	end
