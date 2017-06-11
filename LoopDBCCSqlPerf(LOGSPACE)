@@ -1,0 +1,65 @@
+set nocount on
+
+declare	 @secondsLoop int
+		,@dead int
+		,@string char(1)
+		,@dtStop datetime
+		,@alwaysRun tinyint
+		,@loopDelay datetime
+		,@auxLoopDelay varchar(8)
+		
+--most important variable, if @alwaysRun = 1 loop NEVER STOPS until YOU stop the proccess or kill the session
+-- if @alwaysRun = 0 the variable @dead must be assign to target date (in seconds) to end proccess.
+set @alwaysRun = 0
+
+--setup the seconds to define interval for collecting loops 
+set @secondsLoop = 2
+
+--how many seconds collecting until stop.
+set @dead = 10
+set @dtStop = dateadd(second,@dead,getdate())
+set @loopDelay = '1900-01-01 00:00:00'
+set @loopDelay = dateadd(second,@secondsLoop,@loopDelay)
+set @auxLoopDelay = convert(varchar(8),@loopDelay,108)
+set @string = '-'
+
+print replicate(@string,60)
+print 'Loop Delay Interval..:' + @auxLoopDelay 
+print 'When Finished........:' + convert(varchar(8),@dtStop,108)
+
+--create object
+if (select object_id('master..LogSpace','table')) is not null
+begin
+	drop table master..LogSpace
+	print 'Drop Table...........:' + 'master..LogSpace' 
+end							
+	create table master..LogSpace (
+									 DtCollect			datetime default (getdate()) 
+									,DatabaseName		varchar(250)
+									,LogSize_MB			numeric(18,8)
+									,LogSpaceUsed_Pct	numeric(18,8)
+									,Status_			bit
+								   )
+	print 'Create Table.........:' + 'master..LogSpace' 
+	print replicate(@string,60)
+
+if @alwaysRun = 1 and ( @dead is null or @dead < 0 or @dead = 0)
+begin 
+	PRINT 'THE @dead VARIABLE MUST BE ASSIGN OR SET @alwaysRun = 0 AND MAKE YOU SURE STOPS THIS PROCCESS BEFORE COLLECTING IS DONE TO YOU!'
+	return
+end
+	if @alwaysRun = 0 
+	begin 
+		--begin loop
+		while @dtstop > getdate()
+		begin
+				waitfor delay @auxLoopDelay
+
+				insert into master..LogSpace (DatabaseName,LogSize_MB,LogSpaceUsed_Pct,Status_)
+				exec ('dbcc sqlperf(logspace)')
+		end
+
+	end
+
+--select * from master..LogSpace
+
